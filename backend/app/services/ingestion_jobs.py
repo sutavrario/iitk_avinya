@@ -31,6 +31,7 @@ from app.services.ingestion_store import (
     input_strings,
     providers,
 )
+from app.services.vector_store import index_document
 
 logger = get_logger(__name__)
 _BATCH = 400
@@ -279,6 +280,7 @@ def _save_outcome(
         "warnings": [w.to_dict() for w in outcome.warnings],
         "rowCount": len(new_rows),
         "errorRowCount": sum(1 for r in new_rows.values() if r["hasErrors"]),
+        "rawPages": outcome.raw_pages,
     }
     _finish(
         db,
@@ -323,6 +325,17 @@ def _finish(
         )
 
     txn(db.transaction())
+
+    # After saving to Firestore, asynchronously index into the vector store
+    if status == "needs_review" and extraction.get("rawPages"):
+        try:
+            doc = doc_ref.get().to_dict() or {}
+            file_name = doc.get("fileName", "unknown")
+            business_id = doc.get("businessId")
+            if business_id:
+                index_document(business_id, document_id, file_name, extraction["rawPages"])
+        except Exception:
+            logger.exception("Failed to index document %s into vector store", document_id)
 
 
 def _fail(

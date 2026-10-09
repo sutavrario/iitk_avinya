@@ -22,7 +22,7 @@ testpaths = ["tests"]
 
 [[tool.mypy.overrides]]
 # Third-party SDKs without type information.
-module = ["firebase_admin.*", "google.cloud.storage.*", "pytesseract.*", "pypdfium2.*", "xlrd.*", "fpdf.*", "xlwt.*"]
+module = ["firebase_admin.*", "google.cloud.storage.*", "pytesseract.*", "pypdfium2.*", "xlrd.*", "fpdf.*", "xlwt.*", "chromadb.*", "google.genai.*"]
 ignore_missing_imports = true
 
 [tool.ruff.format]

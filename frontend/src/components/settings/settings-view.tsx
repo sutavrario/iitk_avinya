@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAsyncData } from "@/hooks/use-async-data";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/api-client";
+import { useTranslation } from "@/lib/i18n";
 import type { UserPreferences } from "@/lib/types";
 
 const loadPreferences = () => api.preferences.get();
@@ -40,9 +41,11 @@ export function SettingsView() {
     }
   }
 
+  const { t } = useTranslation();
+
   return (
     <>
-      <PageHeader title="Settings" description="Language and business preferences." />
+      <PageHeader title={t("nav.settings", "Settings")} description="Language and business preferences." />
       <BusinessProfileCard />
 
       {saved.status === "error" && <ErrorState message="Couldn't load your preferences." onRetry={saved.reload} />}

@@ -52,5 +52,5 @@ async function mockCopilotReply(message: string, language: LanguageCode): Promis
 
 export const mockCopilot: CopilotApi = {
   isMock: true,
-  sendMessage: ({ message, language }) => mockCopilotReply(message, language),
+  sendMessage: (businessId, { message, language }) => mockCopilotReply(message, language),
 };

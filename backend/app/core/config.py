@@ -24,6 +24,9 @@ class Settings(BaseSettings):
 
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-2.5-flash"
+    
+    # --- Translation ----------------------------------------------------------------------
+    google_cloud_api_key: SecretStr | None = None
 
     # --- Firebase -------------------------------------------------------------------------
     firebase_project_id: str | None = None

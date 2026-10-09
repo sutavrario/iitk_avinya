@@ -11,6 +11,7 @@ from app.schemas.dashboard import (
     DashboardSummary,
     KpiSummary,
     MonthlyFigure,
+    RecentDocument,
 )
 from app.services.invoices import effective_status
 
@@ -40,7 +41,9 @@ def _month_keys(start: date, today: date) -> list[tuple[int, int]]:
 
 def compute_summary(
     invoices: list[dict[str, Any]],
+    expenses: list[dict[str, Any]],
     payments: list[dict[str, Any]],
+    documents: list[dict[str, Any]],
     today: date,
     fy_start: str = "april",
 ) -> DashboardSummary:
@@ -49,7 +52,7 @@ def compute_summary(
     sales_by_month: dict[tuple[int, int], int] = defaultdict(int)
     expenses_by_month: dict[tuple[int, int], int] = defaultdict(int)
 
-    total_sales = outstanding = overdue = collected = 0
+    total_sales = outstanding = overdue = collected = supplier_payables = 0
     aging = {"Not yet due": 0, "1–30 days": 0, "31–60 days": 0, "60+ days": 0, "No due date": 0}
     by_customer: dict[str, dict[str, int]] = defaultdict(lambda: {"outstanding": 0, "oldest": 0})
 
@@ -92,6 +95,14 @@ def compute_summary(
         c["outstanding"] += amount
         c["oldest"] = max(c["oldest"], max(days_late or 0, 0))
 
+    for exp in expenses:
+        if (exp.get("currency") or "INR") != "INR":
+            continue
+        due = date.fromisoformat(exp["dueDate"]) if exp.get("dueDate") else None
+        status = effective_status(exp.get("status", "unpaid"), due, today)
+        if status != "paid":
+            supplier_payables += int(exp.get("amountPaise", 0))
+
     for pay in payments:
         paid_on = date.fromisoformat(pay["date"])
         if paid_on < start:
@@ -105,13 +116,15 @@ def compute_summary(
     top = sorted(by_customer.items(), key=lambda kv: kv[1]["outstanding"], reverse=True)[:5]
     return DashboardSummary(
         is_mock=False,
-        has_data=bool(invoices or payments),
+        has_data=bool(invoices or payments or expenses),
         period_label=period_label(start, fy_start),
         kpis=KpiSummary(
             total_sales=from_paise(total_sales),
             outstanding_receivables=from_paise(outstanding),
             overdue_amount=from_paise(overdue),
             cash_collected=from_paise(collected),
+            upcoming_receivables=from_paise(aging.get("Not yet due", 0)),
+            supplier_payables=from_paise(supplier_payables),
             unconfirmed_receivables=from_paise(unconfirmed),
             unconfirmed_count=unconfirmed_count,
         ),
@@ -136,4 +149,16 @@ def compute_summary(
             )
             for name, v in top
         ],
+        recent_documents=[
+            RecentDocument(
+                id=d["id"],
+                original_filename=d["originalFilename"],
+                status=d["status"],
+                uploaded_at=d["uploadedAt"],
+                record_type=d["recordType"],
+                issues=d.get("issues", [])
+            )
+            for d in documents[:5]
+        ],
+        action_plan=[],  # to be computed elsewhere or populated after
     )

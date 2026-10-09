@@ -1,6 +1,5 @@
 import type { VyaparApi } from "@/lib/api/contracts";
-import { httpBusinesses, httpDashboard, httpDocuments, httpMe, httpPreferences, httpRecords } from "@/lib/api/http";
-import { mockCopilot } from "@/lib/api/mock/copilot";
+import { httpBusinesses, httpCopilot, httpDashboard, httpDocuments, httpMe, httpPreferences, httpRecords } from "@/lib/api/http";
 
 export type * from "@/lib/api/contracts";
 
@@ -12,5 +11,5 @@ export const api: VyaparApi = {
   dashboard: httpDashboard,
   records: httpRecords,
   documents: httpDocuments,
-  copilot: mockCopilot,
+  copilot: httpCopilot,
 };

@@ -1,6 +1,5 @@
 "use client";
 
-import { Info } from "lucide-react";
 import { SelectField } from "@/components/forms/select-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldContent, FieldDescription, FieldLabel } from "@/components/ui/field";
@@ -40,7 +39,7 @@ export function LanguageSettings({ value, onChange }: Props) {
           <SelectField
             id="interfaceLanguage"
             label="App language"
-            description="Menus and buttons. Currently English only; more coming soon."
+            description="Menus and buttons."
             value={value.interfaceLanguage}
             onChange={(v) => set("interfaceLanguage", v as LanguageCode)}
             options={LANGUAGE_OPTIONS}
@@ -73,13 +72,6 @@ export function LanguageSettings({ value, onChange }: Props) {
             />
           </Field>
         </div>
-
-        {value.interfaceLanguage !== "en" && (
-          <p className="flex gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-            Your choice is saved. Menus will switch to this language once translations are available.
-          </p>
-        )}
       </CardContent>
     </Card>
   );

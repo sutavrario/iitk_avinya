@@ -2,9 +2,11 @@
 
 import { Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ChatComposer } from "@/components/copilot/chat-composer";
 import { ChatMessage, TypingIndicator } from "@/components/copilot/chat-message";
 import { PageHeader } from "@/components/layout/page-header";
+import { useActiveBusiness } from "@/components/providers/workspace-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -20,16 +22,19 @@ const SUGGESTIONS = [
 ];
 
 export function CopilotView() {
+  const business = useActiveBusiness();
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<LanguageCode>("en");
+  const [conversationId, setConversationId] = useState<string | undefined>();
   const endRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     // Falls back to English if preferences can't be loaded.
     api.preferences.get().then((p) => setLanguage(p.copilotLanguage), () => undefined);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -42,7 +47,14 @@ export function CopilotView() {
     setPending(true);
     setError(null);
     try {
-      const reply = await api.copilot.sendMessage({ message: text, history: messages, language });
+      const reply = await api.copilot.sendMessage(business.id, { 
+          message: text, 
+          history: messages, 
+          language,
+          conversationId
+      });
+      // @ts-expect-error - reply does not guarantee conversationId exists, temporary fix
+      if (reply.conversationId) setConversationId(reply.conversationId);
       setMessages([...history, reply]);
     } catch {
       setError("The copilot couldn't answer right now. Please try again.");
@@ -73,7 +85,7 @@ export function CopilotView() {
             </div>
             <h2 className="font-medium">What would you like to know?</h2>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Demo mode: replies are examples of what the copilot will do once connected to your records.
+              Ask about your business metrics, invoices, expenses, or uploaded documents.
             </p>
             <ul className="mt-6 grid w-full max-w-2xl gap-2 sm:grid-cols-2" aria-label="Suggested questions">
               {SUGGESTIONS.map((s) => (

@@ -39,7 +39,7 @@ export interface BusinessApi {
 }
 
 export interface DashboardApi {
-  getSummary(businessId: string): Promise<DashboardSummary>;
+  getSummary(businessId: string, params?: { status?: string; customer_name?: string; supplier_name?: string; start_date?: string; end_date?: string }): Promise<DashboardSummary>;
 }
 
 export interface RecordsApi {
@@ -72,7 +72,7 @@ export interface DocumentsApi {
 export interface CopilotApi {
   /** True while replies are canned demo responses (AI not integrated yet). */
   readonly isMock: boolean;
-  sendMessage(input: { message: string; history: ChatMessage[]; language: LanguageCode }): Promise<ChatMessage>;
+  sendMessage(businessId: string, input: { message: string; history: ChatMessage[]; language: LanguageCode; conversationId?: string }): Promise<ChatMessage>;
 }
 
 export interface VyaparApi {

@@ -4,13 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { APP_NAV } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   return (
     <nav aria-label="Main" className="flex flex-col gap-1">
-      {APP_NAV.map(({ href, label, icon: Icon }) => {
+      {APP_NAV.map(({ href, label, icon: Icon, i18nKey }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
+        const displayLabel = i18nKey ? t(i18nKey, label) : label;
         return (
           <Link
             key={href}
@@ -26,7 +29,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <Icon className="size-4 shrink-0" aria-hidden />
-            {label}
+            {displayLabel}
           </Link>
         );
       })}

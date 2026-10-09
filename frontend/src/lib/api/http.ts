@@ -1,5 +1,5 @@
 import { apiFetch, apiFetchBlob, apiUpload } from "@/lib/api-client";
-import type { BusinessApi, DashboardApi, DocumentsApi, MeApi, PreferencesApi, RecordsApi } from "@/lib/api/contracts";
+import type { BusinessApi, CopilotApi, DashboardApi, DocumentsApi, MeApi, PreferencesApi, RecordsApi } from "@/lib/api/contracts";
 import type {
   Business,
   ConfirmResponse,
@@ -31,7 +31,19 @@ export const httpBusinesses: BusinessApi = {
 };
 
 export const httpDashboard: DashboardApi = {
-  getSummary: (id) => apiFetch<DashboardSummary>(`${biz(id)}/dashboard`),
+  getSummary: (id, params) => {
+    let url = `${biz(id)}/dashboard`;
+    if (params) {
+      const sp = new URLSearchParams();
+      if (params.status) sp.set("status", params.status);
+      if (params.customer_name) sp.set("customer_name", params.customer_name);
+      if (params.supplier_name) sp.set("supplier_name", params.supplier_name);
+      if (params.start_date) sp.set("start_date", params.start_date);
+      if (params.end_date) sp.set("end_date", params.end_date);
+      if (sp.toString()) url += `?${sp.toString()}`;
+    }
+    return apiFetch<DashboardSummary>(url);
+  },
 };
 
 export const httpRecords: RecordsApi = {
@@ -62,4 +74,30 @@ export const httpDocuments: DocumentsApi = {
     apiFetch<ConfirmResponse>(`${doc(id, documentId)}/confirm`, { method: "POST", body: { rowIds: rowIds ?? null } }),
   downloadOriginal: (id, documentId) => apiFetchBlob(`${doc(id, documentId)}/file`),
   remove: (id, documentId) => apiFetch<void>(doc(id, documentId), { method: "DELETE" }),
+};
+
+export const httpCopilot: CopilotApi = {
+  isMock: false,
+  sendMessage: (businessId, input) => {
+    return apiFetch<Record<string, unknown>>(`${biz(businessId)}/copilot/ask`, {
+      method: "POST",
+      body: {
+        question: input.message,
+        conversation_id: input.conversationId,
+        language: input.language,
+      },
+    }).then(res => {
+        return {
+            id: new Date().getTime().toString(),
+            role: "assistant",
+            content: res.answer,
+            createdAt: res.timestamp || new Date().toISOString(),
+            sources: res.sources,
+            caveats: res.caveats,
+            recommendedActions: res.recommended_actions,
+            category: res.category,
+            conversationId: res.conversation_id,
+        };
+    });
+  }
 };

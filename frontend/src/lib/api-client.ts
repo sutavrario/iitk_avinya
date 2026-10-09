@@ -58,6 +58,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     try {
       return await fetch(`${env.apiBaseUrl}${path}`, {
         ...rest,
+        cache: "no-store",
         headers: {
           ...(formData ? {} : { "Content-Type": "application/json" }),
           Authorization: `Bearer ${token}`,

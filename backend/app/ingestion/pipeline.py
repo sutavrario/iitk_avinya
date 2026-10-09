@@ -56,6 +56,7 @@ class ExtractionOutcome:
     mapping: Mapping = field(default_factory=dict)
     mapping_confidence: dict[str, float] = field(default_factory=dict)
     ocr_pages: int = 0
+    raw_pages: list[dict[str, Any]] = field(default_factory=list)
 
 
 def row_id_for(index: int) -> str:
@@ -85,6 +86,7 @@ def run_extraction(
         method="ocr" if any(p.method == "ocr" for p in pages) else "text_layer",
     )
     outcome.ocr_pages = sum(p.method == "ocr" for p in pages)
+    outcome.raw_pages = [{"text": p.text, "page": p.page} for p in pages]
     try:
         records = extractor.extract(pages, options.record_type)
     except IngestionError as exc:
@@ -152,6 +154,13 @@ def _spreadsheet(
     if not records:
         raise IngestionError("no_records_found", "No invoice rows were found in this sheet.")
     outcome.rows = _drafts(records, options.record_type, today)
+    
+    # Store text representation for AI copilot indexing
+    text_lines = []
+    for _idx, row_dict in table.rows:
+        text_lines.append(", ".join(f"{k}: {_cell(v)}" for k, v in row_dict.items() if _cell(v)))
+    outcome.raw_pages = [{"text": "\n".join(text_lines), "page": 1, "sheet_name": table.sheet_name}]
+
     _collapse_currency_warning(outcome)
     return outcome
 

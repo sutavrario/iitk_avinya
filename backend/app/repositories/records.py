@@ -30,14 +30,17 @@ def list_records(
     access: BusinessAccess,
     order_by: str,
     limit: int = MAX_LIST,
+    filters: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     _check_collection(collection)
     query = (
         db.collection(collection)
         .where(filter=FieldFilter("businessId", "==", access.business_id))
-        .order_by(order_by, direction=Query.DESCENDING)
-        .limit(limit)
     )
+    if filters:
+        for k, v in filters.items():
+            query = query.where(filter=FieldFilter(k, "==", v))
+    query = query.order_by(order_by, direction=Query.DESCENDING).limit(limit)
     return [{**(s.to_dict() or {}), "id": s.id} for s in query.stream()]
 
 
