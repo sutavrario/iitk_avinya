@@ -1,0 +1,9 @@
+-r requirements.txt
+pytest>=8.3
+httpx>=0.27
+ruff>=0.7
+mypy>=1.13
+pandas-stubs>=2.2
+# Only used by sample_data/ingestion/generate_samples.py
+fpdf2>=2.7
+xlwt>=1.3

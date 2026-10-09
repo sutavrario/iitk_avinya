@@ -1,0 +1,29 @@
+[project]
+name = "vyaparai-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM"]
+# Line length is enforced by `ruff format`; long string literals (messages, regexes) are allowed.
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[[tool.mypy.overrides]]
+# Third-party SDKs without type information.
+module = ["firebase_admin.*", "google.cloud.storage.*", "pytesseract.*", "pypdfium2.*", "xlrd.*", "fpdf.*", "xlwt.*"]
+ignore_missing_imports = true
+
+[tool.ruff.format]
+quote-style = "double"

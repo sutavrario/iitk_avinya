@@ -1,0 +1,4 @@
+/** Client-side temporary ID (e.g. for optimistic chat messages). Server IDs replace these later. */
+export function newId(prefix: string): string {
+  return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+}

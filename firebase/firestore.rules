@@ -1,0 +1,74 @@
+rules_version = '2';
+
+// VyaparAI Firestore rules.
+//
+// Model: all writes go through the FastAPI backend (Admin SDK, which bypasses these rules
+// after doing its own authorization). Clients may only READ data they are entitled to.
+// Business access is granted by a membership document with a deterministic ID:
+//   businessMembers/{businessId}_{uid}
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(businessId) {
+      return signedIn()
+        && businessId is string
+        && exists(/databases/$(database)/documents/businessMembers/$(businessId + '_' + request.auth.uid));
+    }
+
+    // A user can read only their own profile document.
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /businesses/{businessId} {
+      allow read: if isMember(businessId);
+      allow write: if false;
+    }
+
+    // Users can see their own memberships (e.g. to list their businesses).
+    match /businessMembers/{memberId} {
+      allow read: if signedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Business-owned records: every document carries `businessId`.
+    // List queries must filter on businessId == <a business the user belongs to>.
+    match /invoices/{id}          { allow read: if isMember(resource.data.businessId); allow write: if false; }
+    match /payments/{id}          { allow read: if isMember(resource.data.businessId); allow write: if false; }
+    match /customers/{id}         { allow read: if isMember(resource.data.businessId); allow write: if false; }
+    match /suppliers/{id}         { allow read: if isMember(resource.data.businessId); allow write: if false; }
+    match /expenses/{id}          { allow read: if isMember(resource.data.businessId); allow write: if false; }
+    match /uploadedDocuments/{id} {
+      allow read: if isMember(resource.data.businessId);
+      allow write: if false;
+
+      // Draft rows extracted from the document, awaiting review.
+      match /extractedRecords/{rowId} {
+        allow read: if isMember(resource.data.businessId);
+        allow write: if false;
+      }
+    }
+    match /ingestionJobs/{id}     { allow read: if isMember(resource.data.businessId); allow write: if false; }
+    match /actionPlans/{id}       { allow read: if isMember(resource.data.businessId); allow write: if false; }
+
+    match /conversations/{conversationId} {
+      allow read: if isMember(resource.data.businessId);
+      allow write: if false;
+
+      match /messages/{messageId} {
+        allow read: if isMember(resource.data.businessId);
+        allow write: if false;
+      }
+    }
+
+    // Anything not matched above is denied (explicit for clarity).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

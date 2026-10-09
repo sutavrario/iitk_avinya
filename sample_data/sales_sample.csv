@@ -1,0 +1,6 @@
+date,invoice_no,customer,item,quantity,unit_price_inr,gst_rate
+2026-09-01,INV-1001,Sharma Traders,Basmati Rice 25kg,4,2150,5
+2026-09-02,INV-1002,Gupta Kirana,Toor Dal 1kg,30,145,5
+2026-09-03,INV-1003,Sharma Traders,Sunflower Oil 15L,2,2390,5
+2026-09-05,INV-1004,Mehta Stores,Detergent 1kg,25,110,18
+2026-09-07,INV-1005,Gupta Kirana,Basmati Rice 25kg,3,2150,5
