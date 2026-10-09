@@ -62,7 +62,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
           <div className="text-xs text-muted-foreground mt-2">
             <div className="font-medium mb-1 flex items-center gap-1"><FileText className="size-3"/> Sources:</div>
             <div className="flex flex-wrap gap-2">
-              {message.sources.map((s: Record<string, unknown>, i) => (
+              {message.sources.map((s: Record<string, any>, i) => (
                 <span key={i} className="inline-flex items-center rounded bg-muted px-2 py-0.5">
                   {s.fileName} {s.page ? `(Page ${s.page})` : s.sheetName ? `(Sheet: ${s.sheetName})` : ''}
                 </span>
