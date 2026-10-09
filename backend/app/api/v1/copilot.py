@@ -55,13 +55,13 @@ def ask_copilot(body: CopilotMessageIn, access: CanView, db: Db) -> CopilotMessa
     payments = [PaymentOut.model_validate(d) for d in payments_api]
 
     # Fetch active action plans
-    action_plan_docs = records_repo.list_records(
+    all_action_plans = records_repo.list_records(
         db, 
         col.ACTION_PLANS, 
         access, 
-        filters=[("status", "in", ["active", "dismissed"])], 
         order_by="createdAt"
     )
+    action_plan_docs = [ap for ap in all_action_plans if ap.get("status") in ("active", "dismissed")]
     # We can pass them mostly raw, or we can use the schema validation. They are dicts.
     action_plans = [
         {
