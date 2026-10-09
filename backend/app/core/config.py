@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     # Path to a service-account JSON stored OUTSIDE the repo. Leave empty on Cloud Run
     # (the service's attached service account is used via Application Default Credentials).
     google_application_credentials: str | None = None
+    # Alternatively, the JSON string itself for platforms like Render where files are hard to mount.
+    google_application_credentials_json: SecretStr | None = None
 
     # Local emulators: no credentials needed, nothing touches the real project.
     firebase_use_emulators: bool = False

@@ -8,6 +8,7 @@ Credential resolution, in order:
 """
 
 import os
+import json
 import threading
 from typing import Any
 
@@ -60,6 +61,15 @@ def get_firebase_app() -> firebase_admin.App:
             _configure_emulator_env(settings)
             cred = _EmulatorCredential()
             logger.warning("Firebase Admin is using LOCAL EMULATORS (project %s)", project_id)
+        elif settings.google_application_credentials_json:
+            try:
+                cert_dict = json.loads(settings.google_application_credentials_json.get_secret_value())
+                cred = credentials.Certificate(cert_dict)
+            except Exception as exc:
+                raise ServiceUnavailableError(
+                    "Firebase JSON credentials could not be parsed. Check GOOGLE_APPLICATION_CREDENTIALS_JSON.",
+                    code="firebase_credentials_invalid",
+                ) from exc
         elif settings.google_application_credentials:
             try:
                 cred = credentials.Certificate(settings.google_application_credentials)
